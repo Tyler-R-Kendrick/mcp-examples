@@ -1,32 +1,107 @@
+---
+# You can also start simply with 'default'
+theme: seriph
+# random image from a curated Unsplash collection by Anthony
+# like them? see https://unsplash.com/collections/94734566/slidev
+background: https://cover.sli.dev
+# some information about your slides (markdown enabled)
+title: Welcome to Slidev
+info: |
+  ## Slidev Starter Template
+  Presentation slides for developers.
+
+  Learn more at [Sli.dev](https://sli.dev)
+# apply unocss classes to the current slide
+class: text-center
+# https://sli.dev/features/drawing
+drawings:
+  persist: false
+# slide transition: https://sli.dev/guide/animations.html#slide-transitions
+transition: slide-left
+# enable MDC Syntax: https://sli.dev/features/mdc
+mdc: true
+# open graph
+# seoMeta:
+#  ogImage: https://cover.sli.dev
+---
+
 # MCP outline
 
 Anthropic's Model Context Protocol.
+
+---
 
 ## What is it?
 
 MCP is Anthropic's answer to model interactions as a service. It standardizes not only tool calling, but also how to handle and expose the context in which they operate.
 
+<!--
 MCP (Model Context Protocol) is a standard way for AI applications and agents to connect to and work with your data sources (e.g. local files, databases, or content repositories) and tools (e.g. GitHub, Google Maps, or Puppeteer).
 
 Think of MCP as a universal adapter for AI applications, similar to what USB-C is for physical devices. USB-C acts as a universal adapter to connect devices to various peripherals and accessories. Similarly, MCP provides a standardized way to connect AI applications to different data and tools.
 
 Before USB-C, you needed different cables for different connections. Similarly, before MCP, developers had to build custom connections to each data source or tool they wanted their AI application to work with—a time-consuming process that often resulted in limited functionality. Now, with MCP, developers can easily add connections to their AI applications, making their applications much more powerful from day one.
+-->
+
+---
+layout: section
+---
 
 ## What problems does it solve? Why is it needed?
 
-### OpenAPI and API Manifests
+---
+layout: two-cols-header
+---
 
-LLMs need tools to interact with the world.
+<script setup>
+const imgs = [
+    '/assets/mcp-architecture.png',
+    '/assets/mcp-inspector.png',
+    '/assets/mcp-simple-diagram.png'
+];
+</script>
+# Importing API Specifications as LLM Tools
 
-Several standards already exist to expose reusable code as a service, such as OpenAPI, AsyncAPI, and gRPC. These standards allow developers to define APIs in a machine-readable format, enabling automatic generation of client libraries and documentation.
+<v-click at="1" hide>
+LLMs need tools to interact with the world. Several standards already exist to expose reusable code as a service, through api specs such as OpenAPI, AsyncAPI, and gRPC.
+</v-click>
 
-Many frameworks leverage OpenAPI to import tool definitions and enable LLMs with new capabilities with little plumbing and labor, but this has limitations.
+::left::
 
-* For optimal performance, tool descriptions currently need to be tailored to the model. OpenAPI description may not be sufficient for accurate tool calling - causing more code to be written to accommodate the shortcomings of api descriptors.
-* Even if the api spec has sufficient descriptors, service designs often are more abstract than the llms tasks we build for - and we often compose multiple api calls to achieve a single task. This is often not captured in the api spec, and requires additional code to be written to compose the calls.
-* The current generation of LLMs suffer from a "lost-in-the-middle" problem; as the size of the context window increases, tool selection success decreases. If you look at enterprise api specs, they are often very large; it is often much better to only import the tools that are relevant to the task at hand, instead of every endpoint in the spec.
+<img
+  v-for="(src,i) in imgs"
+  :src="src"
+  :key="src"
+  v-show="$clicks === i + 1"
+/>
 
-Api Manifests were introduced to limit the size/scope of the API description to only the relevant endpoints for client generation, but this still suffers from the same issue of tool descriptor optimization for models, and the composition issue.
+::right::
+
+<v-clicks>
+
+* Parsing OpenAPI specs for tool descriptions.
+
+* Asymmetries in task composition vs. service decomposition.
+
+* LLM Context Bloat, tool selection, and api manifests
+
+</v-clicks>
+
+<!--
+
+LLMs need tools to interact with the world and api specifications make this a lot easier to implement. However, each of the existing standards have its own set of limitations when it comes to tool calling:
+
+[click] For optimal performance, tool descriptions currently need to be tailored to the model. OpenAPI description may not be sufficient for accurate tool calling - causing more code to be written to accommodate the shortcomings of api descriptors.
+
+[click] Even if the api spec has sufficient descriptors, service designs often are more abstract than the llms tasks we build for - and we often compose multiple api calls to achieve a single task. This is often not captured in the api spec, and requires additional code to be written to compose the calls.
+
+[click] The current generation of LLMs suffer from a "lost-in-the-middle" problem; as the size of the context window increases, tool selection success decreases. If you look at enterprise api specs, they are often very large; it is often much better to only import the tools that are relevant to the task at hand, instead of every endpoint in the spec.
+
+[click] Api Manifests were introduced to limit the size/scope of the API description to only the relevant endpoints for client generation, but this still suffers from the same issue of tool descriptor optimization for models, and the composition issue.
+
+-->
+
+---
 
 ### Langserve, process-isolation, and tools-as-a-service
 
@@ -42,9 +117,13 @@ To bring langserve capabilities to the dotnet ecosystem and compete with it, I a
 
 Developers still needed to write code in different languages, using their own framework of choice, and be able to reuse what the industry at large had contributed (both SK and LangChain).
 
-### DSLs (LMQL)
+---
 
-A few attempts were made to create dsls that would allow developers to define tools in a more language-agnostic way, but because they lacked adoption, the plugin support across languages had never been implemented - coincidentally, causing the same problem of limiting adoption to the language/framework that created the DSL.
+### Domain Specific Languages
+
+A few attempts were made to create DSLs (LMQL) that would allow developers to define tools in a more language-agnostic way, but because they lacked adoption, the plugin support across languages had never been implemented - coincidentally, causing the same problem of limiting adoption to the language/framework that created the DSL.
+
+---
 
 ### The solution
 
@@ -63,6 +142,8 @@ Anthropic saw these issues and abstracted a level further to create a protocol c
 * Host a server (Docker in a multi-container dev-container)
 * Create/load an mcp json config
 
+---
+
 ## What can you do with it?
 
 * Leverage resources endpoints as a way to abstract away file systems and replace framework specific abstractions (python's fsspec, dotnet's FileProvider apis, etc.) with NL queryable resource access. Build one that bridges your enterprise's Azure Storage and AWS S3 buckets, or even a local file system, and expose it as a resource endpoint that can be queried with NL.
@@ -72,6 +153,8 @@ Anthropic saw these issues and abstracted a level further to create a protocol c
 * Combine MCP servers for emergent effects (think adding Playwright MCP, (A visual regression testing agent (like BackstopJS or Chromatic), and an Operator Agent to dynamically build regression suites).
 * Build a "CodeAct" agent that can dynamically build and expose new functions as code, given a context.
 * Create a server that ***is*** a client, to dynamically add/remove MCP servers and create adaptive systems (think of a universal agent that loads tools from disparate systems based on user queries - such as HR, IT, and Sales)
+
+---
 
 ## What can it not yet do?
 
@@ -86,17 +169,15 @@ Anthropic saw these issues and abstracted a level further to create a protocol c
 * Multi-modal multi-block outputs aren't yet supported.
 * Specifying external filesystems in client Roots [here](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/505).
 
-## Caviats
+---
+
+## Caveats
 
 * Servers can declare the same tool names, resulting in conflicts on the client. The same goes for all named entities (resources, prompts, etc.). This is a known limitation of the protocol and should be handled by the client.
 * The protocol is stateful.
-* [server registry standards](https://github.com/orgs/modelcontextprotocol/discussions/159) are in-development.
+* The protocol is in active development; the specification is not yet finalized, and breaking changes may occur in future releases.
 
-## Where is it inappropriate to use?
-
-* Workflow Orchestration
-* Agent Orchestration
-* ...
+---
 
 ## Roadmap
 
@@ -139,6 +220,8 @@ We’re implementing governance structures that prioritize:
 **Community-Led Development**: fostering a collaborative ecosystem where community members and AI developers can all participate in MCP’s evolution, ensuring it serves diverse applications and use cases
 **Transparent Standardization**: establishing clear processes for contributing to the specification, while exploring formal standardization via industry bodies
 ​
+---
+
 ## Resources
 
 ### Server Lists
@@ -171,3 +254,5 @@ We’re implementing governance structures that prioritize:
 * [Azure AI Foundry](https://github.com/azure-ai-foundry/mcp-foundry)
 * Azure AI Agent Services
 * NLWeb
+
+---

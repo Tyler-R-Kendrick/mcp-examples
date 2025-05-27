@@ -48,6 +48,7 @@ The last comment block of each slide will be treated as slide notes. It will be 
 
 ---
 transition: fade-out
+src: ./pages/Outline.md
 ---
 
 # What is Slidev?
